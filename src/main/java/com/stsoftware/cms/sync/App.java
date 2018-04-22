@@ -27,6 +27,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
 import org.apache.commons.cli.CommandLine;
@@ -54,18 +55,27 @@ public class App extends AppCmdLine
     private String siteName;
 
     @Override
+    @SuppressWarnings("SleepWhileInLoop")
     public void handleCommandLine(final @Nonnull CommandLine line) throws Exception {
         super.handleCommandLine(line);
 
-        String tmpURL=(String)System.getProperties().get(PROPERTY_REMOTE_URL);
+        Properties properties = System.getProperties();
+        String tmpURL=(String)properties.get(PROPERTY_REMOTE_URL);
         String tmpDir=line.getOptionValue("d");
+        siteName=line.getOptionValue("s");
 
-        if( StringUtilities.isBlank(tmpDir) || StringUtilities.isBlank(tmpURL))
+        if( StringUtilities.isBlank(tmpDir) || StringUtilities.isBlank(tmpURL)|| StringUtilities.isBlank(siteName))
         {
             SyncJFrame syncOptions=new SyncJFrame();
             syncOptions.setVisible(true);
-            
-            Thread.sleep(100000);
+            while( syncOptions.isVisible())
+            {
+                Thread.sleep(500);
+            }
+            tmpURL=syncOptions.getRemoteURL();
+            properties.put(PROPERTY_REMOTE_URL, tmpURL);
+            tmpDir=syncOptions.getBaseDir();
+            siteName=syncOptions.getSiteName();
         }
         if( StringUtilities.isBlank(tmpURL))
         {
@@ -73,7 +83,6 @@ public class App extends AppCmdLine
         }
         remoteURL=new URL(tmpURL);
 
-        siteName=line.getOptionValue("s");
         if( StringUtilities.isBlank(siteName))
         {
             throw new Exception( "Site is mandatory");

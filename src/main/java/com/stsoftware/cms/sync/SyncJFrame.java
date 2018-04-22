@@ -11,15 +11,12 @@ import com.aspc.remote.rest.Response;
 import com.aspc.remote.rest.Status;
 import com.aspc.remote.util.misc.StringUtilities;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import jdk.net.SocketFlow;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -208,17 +205,51 @@ public class SyncJFrame extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
     
-    private void checkValid( )
+    public String getBaseDir()
+    {
+        return directoryPath.getText();
+    }
+    public String getSiteName()
+    {
+        return siteName.getText();
+    }
+    
+    public String getRemoteURL()
+    {
+        String url=serverURL.getText();
+        
+        int pos = url.indexOf("://");
+        
+        String remoteURL=url.substring(0, pos+3);
+        remoteURL+=userName.getText();
+        remoteURL+=":" + new String( password.getPassword());
+        remoteURL+="@" + url.substring(pos +3);
+        
+        return remoteURL;
+    }
+    
+    private boolean checkValid( )
     {
         try{
             Response response = ReST.builder(serverURL.getText() + "/ReST/v8/class/Site")
-                    .setParameter("q", "site=" + siteName.getText())
+                    .setParameter("q", "name=" + siteName.getText())
                     .setAuthorization(userName.getText(), new String(password.getPassword()))
                     .getResponse();
-            
+            //http://www.jobtrack.com.au/ReST/v8/class/Site?q=name%3DControlPanel
             if( response.status == Status.C200_SUCCESS_OK)
             {
                 JSONObject json = response.getContentAsJSON();
+                
+                JSONArray results = json.getJSONArray("results");
+                
+                if( results.length()==1)
+                {
+                    return true;
+                }
+                else
+                {
+                    showMessage("No such site");
+                }
             }
             else 
             {
@@ -229,9 +260,14 @@ public class SyncJFrame extends javax.swing.JFrame {
         {
             showMessage( e.toString());
         }
+        
+        return false;
     }
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        checkValid();
+        if( checkValid())
+        {
+            setVisible(false);
+        }
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
