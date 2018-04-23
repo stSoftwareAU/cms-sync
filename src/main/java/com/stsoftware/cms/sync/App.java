@@ -53,7 +53,8 @@ public class App extends AppCmdLine
     private URL remoteURL;
     private File syncDirectory;
     private String siteName;
-
+    private MonitorJFrame monitor;
+    
     @Override
     @SuppressWarnings("SleepWhileInLoop")
     public void handleCommandLine(final @Nonnull CommandLine line) throws Exception {
@@ -76,6 +77,8 @@ public class App extends AppCmdLine
             properties.put(PROPERTY_REMOTE_URL, tmpURL);
             tmpDir=syncOptions.getBaseDir();
             siteName=syncOptions.getSiteName();
+            monitor=new MonitorJFrame();
+            monitor.setVisible(true);
         }
         if( StringUtilities.isBlank(tmpURL))
         {
@@ -229,12 +232,30 @@ public class App extends AppCmdLine
             }
             catch( Exception e)
             {
-                LOGGER.warn( "could not send", e);
+                warn( "could not send", e);
                 Thread.sleep(60000);
             }
         }
     }
 
+    private void warn( final String msg, final Throwable t)
+    {
+        log( msg);
+        LOGGER.warn( "could not send", t);
+
+    }
+    private void info( final String msg)
+    {
+        LOGGER.info( msg);
+        log( msg);
+    }
+    private void log( final String msg)
+    {
+        if( monitor!=null)
+        {
+            monitor.setMessage( msg);
+        }
+    }
     private long scanChanges( final File subDir, long lastModified) throws Exception
     {
         long nextModified=lastModified;
@@ -254,7 +275,7 @@ public class App extends AppCmdLine
                 long tmpModified=f.lastModified();
                 if( tmpModified>lastModified)
                 {
-                    LOGGER.info( "Changed: " + f);
+                    info( "Changed: " + f);
                     sendFile( f);
                     if( tmpModified>nextModified)
                     {
@@ -271,7 +292,7 @@ public class App extends AppCmdLine
     {
         String path = file.getPath().substring(syncDirectory.getPath().length() + 1);
         
-        LOGGER.info( "path: " + path);
+        info( "path: " + path);
         
         JSONObject json = makeBuilder( "/ReST/v5/class/SiteResource")
             .addParameter("q", "site IS '" + siteKey + "' and path='" + path + "'")

@@ -10,7 +10,11 @@ import com.aspc.remote.rest.ReST;
 import com.aspc.remote.rest.Response;
 import com.aspc.remote.rest.Status;
 import com.aspc.remote.util.misc.StringUtilities;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Properties;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -25,6 +29,7 @@ import org.json.JSONObject;
  */
 public class SyncJFrame extends javax.swing.JFrame {
 
+    private static final String PROPERTIES_PATH=System.getProperty("user.home")+"/.st/cms-sync.properties";
     /**
      * Creates new form SyncJFrame
      */
@@ -57,8 +62,56 @@ public class SyncJFrame extends javax.swing.JFrame {
                 }
             });
         }
+        
+        load();
+        
     }
 
+    private void load()
+    {
+        Properties p=new Properties();
+        
+        File f = new File( PROPERTIES_PATH);
+        
+        if( f.canRead())
+        {
+            try(FileReader r=new FileReader(f))
+            {
+                p.load(r);
+            }
+            catch( IOException ioE)
+            {
+                System.out.println( f.toString()+":"+ ioE);
+            }
+        }
+        
+        directoryPath.setText(p.getProperty("dir.path", directoryPath.getText()));
+        serverURL.setText(p.getProperty("server.url", serverURL.getText()));
+        siteName.setText(p.getProperty("site.name", siteName.getText()));
+        userName.setText(p.getProperty("user.name", userName.getText()));
+    }
+    
+    private void save()
+    {
+        Properties p=new Properties();
+        p.setProperty("dir.path", directoryPath.getText());
+        p.setProperty("server.url", serverURL.getText());
+        p.setProperty("site.name", siteName.getText());
+        p.setProperty("user.name", userName.getText());
+        
+        File f = new File( PROPERTIES_PATH);
+        f.getParentFile().mkdirs();
+        
+        try( FileWriter w=new FileWriter(f))
+        {
+            p.store(w, "sync to CMS");
+        }
+        catch( IOException ioE)
+        {
+            System.out.println( f.toString()+":"+ ioE);
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -266,6 +319,7 @@ public class SyncJFrame extends javax.swing.JFrame {
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         if( checkValid())
         {
+            save();
             setVisible(false);
         }
     }//GEN-LAST:event_okButtonActionPerformed
