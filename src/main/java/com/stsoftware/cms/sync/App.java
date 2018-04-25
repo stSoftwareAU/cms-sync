@@ -73,7 +73,7 @@ public class App extends AppCmdLine
             {
                 Thread.sleep(500);
             }
-            tmpURL=syncOptions.getRemoteURL();
+            tmpURL=syncOptions.getRemoteURL().toString();
             properties.put(PROPERTY_REMOTE_URL, tmpURL);
             tmpDir=syncOptions.getBaseDir();
             siteName=syncOptions.getSiteName();
@@ -85,7 +85,8 @@ public class App extends AppCmdLine
             throw new Exception( "remote URL is mandatory");
         }
         remoteURL=new URL(tmpURL);
-
+        assert remoteURL.getUserInfo()!=null: "no user Info in " + tmpURL;
+        
         if( StringUtilities.isBlank(siteName))
         {
             throw new Exception( "Site is mandatory");

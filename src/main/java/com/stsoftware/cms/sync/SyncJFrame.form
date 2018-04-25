@@ -171,9 +171,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JPasswordField" name="password">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="admin"/>
-      </Properties>
     </Component>
   </SubComponents>
 </Form>

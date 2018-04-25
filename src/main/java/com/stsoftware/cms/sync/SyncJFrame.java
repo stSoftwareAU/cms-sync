@@ -14,7 +14,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -188,8 +192,6 @@ public class SyncJFrame extends javax.swing.JFrame {
         jLabel4.setLabelFor(password);
         jLabel4.setText("Password:");
 
-        password.setText("admin");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -258,35 +260,62 @@ public class SyncJFrame extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
     
+    @CheckReturnValue @Nonnull
     public String getBaseDir()
     {
         return directoryPath.getText();
     }
+    
+    @CheckReturnValue @Nonnull
     public String getSiteName()
     {
         return siteName.getText();
     }
     
-    public String getRemoteURL()
+    @CheckReturnValue @Nonnull
+    public URL getRemoteURL()
     {
         String url=serverURL.getText();
         
         int pos = url.indexOf("://");
         
         String remoteURL=url.substring(0, pos+3);
-        remoteURL+=userName.getText();
-        remoteURL+=":" + new String( password.getPassword());
+        remoteURL+=StringUtilities.encode(userName.getText());
+        remoteURL+=":" + StringUtilities.encode(new String( password.getPassword()));
         remoteURL+="@" + url.substring(pos +3);
         
-        return remoteURL;
+        try{
+            return new URL( remoteURL);
+        }
+        catch( MalformedURLException mue)
+        {
+            throw new IllegalArgumentException( remoteURL);
+        }
     }
     
     private boolean checkValid( )
     {
         try{
-            Response response = ReST.builder(serverURL.getText() + "/ReST/v8/class/Site")
+            URL url=getRemoteURL();
+            String server=url.getProtocol() + "://" + url.getHost() + ":" + url.getPort();
+            String user = url.getUserInfo();
+            int pos = user.indexOf(":");
+            if( pos != -1)
+            {
+                user = user.substring(0, pos);
+            }
+            String path=url.getPath();
+            while( path!=null && path.startsWith("/"))
+            {
+                path=path.substring(1);
+            }
+            if( StringUtilities.notBlank(path))
+            {
+                user+="@" + path;
+            }
+            Response response = ReST.builder(server + "/ReST/v8/class/Site")
                     .setParameter("q", "name=" + siteName.getText())
-                    .setAuthorization(userName.getText(), new String(password.getPassword()))
+                    .setAuthorization(user, new String(password.getPassword()))
                     .getResponse();
             //http://www.jobtrack.com.au/ReST/v8/class/Site?q=name%3DControlPanel
             if( response.status == Status.C200_SUCCESS_OK)
