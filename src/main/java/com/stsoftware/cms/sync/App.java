@@ -295,7 +295,7 @@ public class App extends AppCmdLine
         
         info( "path: " + path);
         
-        JSONObject json = makeBuilder( "/ReST/v5/class/SiteResource")
+        JSONObject json = makeBuilder( "/ReST/v8/class/SiteResource")
             .addParameter("q", "site IS '" + siteKey + "' and path='" + path + "'")
             .getResponseAndCheck()
             .getContentAsJSON();
@@ -304,7 +304,7 @@ public class App extends AppCmdLine
         {
             JSONObject resourceJSON=resourceList.getJSONObject(0);
             String data=FileUtil.readFile(file);
-            ReST.Builder b = makeBuilder( "/ReST/v5/class/SiteResource/" + resourceJSON.getString("_key"));
+            ReST.Builder b = makeBuilder( "/ReST/v8/class/SiteResource/" + resourceJSON.getString("_key"));
 
             String type = resourceJSON.getJSONObject("type").getString("code");
 
@@ -336,7 +336,7 @@ public class App extends AppCmdLine
         try{            
             lastModify.set(Long.MAX_VALUE);
 
-            JSONObject json = makeBuilder( "/ReST/v5/class/SiteResource").addParameter("q", "site IS '" + siteKey + "'").getResponseAndCheck().getContentAsJSON();
+            JSONObject json = makeBuilder( "/ReST/v8/class/SiteResource").addParameter("q", "site IS '" + siteKey + "'").getResponseAndCheck().getContentAsJSON();
 
             JSONArray resourceList = json.getJSONArray("results");
 
