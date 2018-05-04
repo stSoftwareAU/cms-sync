@@ -16,6 +16,8 @@ import com.aspc.remote.rest.Method;
 import com.aspc.remote.rest.ReST;
 import com.aspc.remote.util.misc.CLogger;
 import com.aspc.remote.util.misc.FileUtil;
+import static com.aspc.remote.util.misc.FileUtil.deleteAll;
+import static com.aspc.remote.util.misc.FileUtil.deleteFromDirectory;
 import com.aspc.remote.util.misc.StringUtilities;
 import com.aspc.remote.util.misc.ThreadPool;
 import java.io.File;
@@ -140,7 +142,12 @@ public class App extends AppCmdLine
     @SuppressWarnings("SleepWhileInLoop")
     public void process() throws Exception {
 
-
+        // Remove all the files/directories
+        for( File file: syncDirectory.listFiles())
+        {
+            file.delete();
+        }
+        
         JSONObject json = makeBuilder( "/ReST/v5/class/site").addParameter("q", "name='" + siteName + "'").getResponseAndCheck().getContentAsJSON();
         //LOGGER.info( json.toString(2));
 
